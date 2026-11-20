@@ -1,6 +1,11 @@
 # 🧬 Rosalind Solutions
 
+[![tests](https://github.com/muhammedfidann06/rosalind-solutions/actions/workflows/ci.yml/badge.svg)](https://github.com/muhammedfidann06/rosalind-solutions/actions/workflows/ci.yml)
+
 Solutions to bioinformatics problems from [rosalind.info](https://rosalind.info), written in clean, tested Python.
+
+> 🇩🇪 **Kurzbeschreibung:** Lösungen für 15 Bioinformatik-Aufgaben von Rosalind (DNA, RNA, Proteine, Graphen).
+> Jede Funktion hat einen Test mit den offiziellen Beispieldaten. Die Tests laufen automatisch mit GitHub Actions.
 
 ## Solved problems
 
