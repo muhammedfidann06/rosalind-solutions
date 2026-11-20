@@ -1,7 +1,5 @@
 """
 Rosalind problem solutions (bioinformatics).
-
-Hinweis: Die Kommentare sind auf Deutsch (Niveau A2).
 """
 
 from collections import Counter

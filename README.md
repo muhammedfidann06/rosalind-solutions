@@ -1,7 +1,6 @@
 # 🧬 Rosalind Solutions
 
 Solutions to bioinformatics problems from [rosalind.info](https://rosalind.info), written in clean, tested Python.
-Code comments are written in **German (A2 level)** – I use this project to practice the language, too.
 
 ## Solved problems
 
