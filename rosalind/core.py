@@ -222,6 +222,53 @@ def protein_mass(protein: str) -> float:
 
 
 # ---------------------------------------------------------------------------
+# MRNA – Wie viele RNA-Sequenzen ergeben dieses Protein?
+# ---------------------------------------------------------------------------
+def rna_count_for_protein(protein: str, modulo: int = 1_000_000) -> int:
+    # Für jede Aminosäure zählen wir, wie viele Codons sie haben.
+    codons_per_aa = Counter(CODON_TABLE.values())
+    count = codons_per_aa["*"]  # am Ende kommt ein Stopp-Codon (3 Möglichkeiten)
+    for aa in protein.upper():
+        # Wir rechnen sofort modulo, damit die Zahl nicht riesig wird.
+        count = (count * codons_per_aa[aa]) % modulo
+    return count
+
+
+# ---------------------------------------------------------------------------
+# SPLC – RNA-Spleißen: Introns entfernen, dann übersetzen
+# ---------------------------------------------------------------------------
+def splice_and_translate(fasta: str) -> str:
+    # Die erste Sequenz ist die DNA, alle anderen sind Introns.
+    seqs = list(parse_fasta(fasta).values())
+    dna, introns = seqs[0], seqs[1:]
+    for intron in introns:
+        dna = dna.replace(intron, "")
+    return translate(transcribe(dna))
+
+
+# ---------------------------------------------------------------------------
+# ORF – Offene Leserahmen in allen 6 Rahmen
+# ---------------------------------------------------------------------------
+def open_reading_frames(dna: str) -> List[str]:
+    # Ein ORF beginnt mit AUG (Start) und endet mit einem Stopp-Codon.
+    # Wir lesen beide Stränge, jeweils in 3 Rahmen = 6 Rahmen.
+    proteins = set()
+    for strand in (dna.upper(), reverse_complement(dna)):
+        rna = transcribe(strand)
+        for start in range(len(rna) - 2):
+            if rna[start:start + 3] != "AUG":
+                continue
+            protein: List[str] = []
+            for i in range(start, len(rna) - 2, 3):
+                aa = CODON_TABLE[rna[i:i + 3]]
+                if aa == "*":
+                    proteins.add("".join(protein))  # nur mit Stopp-Codon gültig
+                    break
+                protein.append(aa)
+    return sorted(proteins)
+
+
+# ---------------------------------------------------------------------------
 # REVP – Restriktionsstellen (Palindrome)
 # ---------------------------------------------------------------------------
 def reverse_palindromes(dna: str, lo: int = 4, hi: int = 12) -> List[Tuple[int, int]]:
