@@ -304,6 +304,62 @@ def spliced_motif(s: str, t: str) -> List[int]:
 
 
 # ---------------------------------------------------------------------------
+# IEV – Erwartete Anzahl Nachkommen mit dominantem Merkmal
+# ---------------------------------------------------------------------------
+def expected_dominant_offspring(couples: List[int], children_per_couple: int = 2) -> float:
+    # Paare in dieser Reihenfolge: AA-AA, AA-Aa, AA-aa, Aa-Aa, Aa-aa, aa-aa
+    # Wahrscheinlichkeit für ein dominantes Kind bei jedem Paar:
+    p_dominant = [1.0, 1.0, 1.0, 0.75, 0.5, 0.0]
+    # Erwartungswert = Summe (Anzahl Paare * Kinder * Wahrscheinlichkeit)
+    return sum(n * children_per_couple * p for n, p in zip(couples, p_dominant))
+
+
+# ---------------------------------------------------------------------------
+# TRAN – Verhältnis Transition / Transversion
+# ---------------------------------------------------------------------------
+_PURINES = set("AG")      # Purine: A, G
+_PYRIMIDINES = set("CT")  # Pyrimidine: C, T
+
+
+def transition_transversion_ratio(s: str, t: str) -> float:
+    # Transition: Purin <-> Purin oder Pyrimidin <-> Pyrimidin (A<->G, C<->T)
+    # Transversion: Purin <-> Pyrimidin
+    if len(s) != len(t):
+        raise ValueError("Die Sequenzen sind nicht gleich lang.")
+    transitions = transversions = 0
+    for a, b in zip(s.upper(), t.upper()):
+        if a == b:
+            continue
+        same_group = ({a, b} <= _PURINES) or ({a, b} <= _PYRIMIDINES)
+        if same_group:
+            transitions += 1
+        else:
+            transversions += 1
+    if transversions == 0:
+        raise ValueError("Keine Transversion – das Verhältnis ist nicht definiert.")
+    return transitions / transversions
+
+
+# ---------------------------------------------------------------------------
+# KMER – k-mer-Zusammensetzung (wie oft kommt jedes k-mer vor?)
+# ---------------------------------------------------------------------------
+def kmer_composition(dna: str, k: int = 4) -> List[int]:
+    # Alle k-mere über ACGT, lexikografisch sortiert (wie LEXF).
+    kmers = lexicographic_kmers(["A", "C", "G", "T"], k)
+    counts = Counter(dna[i:i + k] for i in range(len(dna) - k + 1))
+    return [counts[km] for km in kmers]
+
+
+# ---------------------------------------------------------------------------
+# PDST – Matrix der p-Distanzen
+# ---------------------------------------------------------------------------
+def p_distance_matrix(seqs: List[str]) -> List[List[float]]:
+    # p-Distanz = Anteil der Stellen, an denen sich zwei Sequenzen unterscheiden.
+    n = len(seqs)
+    return [[hamming(seqs[i], seqs[j]) / len(seqs[i]) for j in range(n)] for i in range(n)]
+
+
+# ---------------------------------------------------------------------------
 # REVP – Restriktionsstellen (Palindrome)
 # ---------------------------------------------------------------------------
 def reverse_palindromes(dna: str, lo: int = 4, hi: int = 12) -> List[Tuple[int, int]]:
