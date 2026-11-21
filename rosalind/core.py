@@ -269,6 +269,41 @@ def open_reading_frames(dna: str) -> List[str]:
 
 
 # ---------------------------------------------------------------------------
+# PERM – Alle Permutationen von 1..n
+# ---------------------------------------------------------------------------
+def permutations_of(n: int) -> List[Tuple[int, ...]]:
+    # itertools.permutations liefert schon die lexikografische Reihenfolge.
+    from itertools import permutations
+    return list(permutations(range(1, n + 1)))
+
+
+# ---------------------------------------------------------------------------
+# LEXF – Alle Wörter der Länge n aus einem Alphabet, sortiert
+# ---------------------------------------------------------------------------
+def lexicographic_kmers(alphabet: List[str], n: int) -> List[str]:
+    # product() geht die Buchstaben in der gegebenen Reihenfolge durch.
+    # Das Alphabet bestimmt also selbst, was "alphabetisch" heißt.
+    return ["".join(p) for p in product(alphabet, repeat=n)]
+
+
+# ---------------------------------------------------------------------------
+# SSEQ – Gespleißtes Motiv: t als Teilfolge (nicht zusammenhängend) in s
+# ---------------------------------------------------------------------------
+def spliced_motif(s: str, t: str) -> List[int]:
+    # Gierig von links: Für jeden Buchstaben von t nehmen wir das nächste passende in s.
+    positions: List[int] = []
+    i = 0
+    for ch in t:
+        while i < len(s) and s[i] != ch:
+            i += 1
+        if i == len(s):
+            return []  # t ist keine Teilfolge von s
+        positions.append(i + 1)  # Rosalind zählt ab 1
+        i += 1
+    return positions
+
+
+# ---------------------------------------------------------------------------
 # REVP – Restriktionsstellen (Palindrome)
 # ---------------------------------------------------------------------------
 def reverse_palindromes(dna: str, lo: int = 4, hi: int = 12) -> List[Tuple[int, int]]:
