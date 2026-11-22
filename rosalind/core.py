@@ -407,6 +407,121 @@ def random_string_log_probability(dna: str, gc_contents: List[float]) -> List[fl
 
 
 # ---------------------------------------------------------------------------
+# PMCH – Perfekte Paarungen in einem RNA-Bindungsgraphen
+# ---------------------------------------------------------------------------
+def perfect_matchings(rna: str) -> int:
+    # A paart mit U, G paart mit C. Wenn #A == #U und #G == #C:
+    # Jedes A kann mit jedem freien U paaren -> #A! Möglichkeiten, ebenso #G! für G-C.
+    from math import factorial
+    rna = rna.upper()
+    a, u, g, c = rna.count("A"), rna.count("U"), rna.count("G"), rna.count("C")
+    if a != u or g != c:
+        raise ValueError("Keine perfekte Paarung möglich (#A != #U oder #G != #C).")
+    return factorial(a) * factorial(g)
+
+
+# ---------------------------------------------------------------------------
+# MMCH – Maximale Paarungen (Anzahl)
+# ---------------------------------------------------------------------------
+def maximum_matchings(rna: str) -> int:
+    # Für A-U: Wir wählen min(#A, #U) Paare. Anzahl = max! / (max - min)!  (geordnete Auswahl)
+    from math import perm
+    rna = rna.upper()
+    a, u, g, c = rna.count("A"), rna.count("U"), rna.count("G"), rna.count("C")
+    return perm(max(a, u), min(a, u)) * perm(max(g, c), min(g, c))
+
+
+# ---------------------------------------------------------------------------
+# SSET – Anzahl der Teilmengen
+# ---------------------------------------------------------------------------
+def subset_count(n: int, modulo: int = 1_000_000) -> int:
+    # Jedes Element ist drin oder nicht -> 2^n Teilmengen. pow mit 3 Argumenten rechnet modulo.
+    return pow(2, n, modulo)
+
+
+# ---------------------------------------------------------------------------
+# ASPC – Summe von Binomialkoeffizienten
+# ---------------------------------------------------------------------------
+def sum_of_combinations(n: int, m: int, modulo: int = 1_000_000) -> int:
+    # Summe von C(n, k) für k = m … n, modulo 1 000 000.
+    from math import comb
+    return sum(comb(n, k) for k in range(m, n + 1)) % modulo
+
+
+# ---------------------------------------------------------------------------
+# LGIS – Längste steigende UND fallende Teilfolge
+# ---------------------------------------------------------------------------
+def longest_increasing_subsequence(seq: List[int]) -> List[int]:
+    # O(n log n) mit binärer Suche (Patience Sorting) und Vorgänger-Links.
+    from bisect import bisect_left
+    tails: List[int] = []      # kleinster Endwert für jede Länge
+    tail_idx: List[int] = []   # Index dieses Endwerts in seq
+    prev = [-1] * len(seq)
+    for i, x in enumerate(seq):
+        k = bisect_left(tails, x)
+        if k == len(tails):
+            tails.append(x)
+            tail_idx.append(i)
+        else:
+            tails[k] = x
+            tail_idx[k] = i
+        prev[i] = tail_idx[k - 1] if k > 0 else -1
+    out: List[int] = []
+    i = tail_idx[-1] if tail_idx else -1
+    while i != -1:
+        out.append(seq[i])
+        i = prev[i]
+    return out[::-1]
+
+
+def longest_decreasing_subsequence(seq: List[int]) -> List[int]:
+    # Trick: fallend in seq = steigend in -seq
+    return [-x for x in longest_increasing_subsequence([-x for x in seq])]
+
+
+# ---------------------------------------------------------------------------
+# LCSQ – Längste gemeinsame Teilfolge
+# ---------------------------------------------------------------------------
+def longest_common_subsequence(s: str, t: str) -> str:
+    # Klassische DP-Tabelle, dann rückwärts eine Lösung bauen.
+    n, m = len(s), len(t)
+    table = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            if s[i - 1] == t[j - 1]:
+                table[i][j] = table[i - 1][j - 1] + 1
+            else:
+                table[i][j] = max(table[i - 1][j], table[i][j - 1])
+    out: List[str] = []
+    i, j = n, m
+    while i > 0 and j > 0:
+        if s[i - 1] == t[j - 1]:
+            out.append(s[i - 1])
+            i -= 1
+            j -= 1
+        elif table[i - 1][j] >= table[i][j - 1]:
+            i -= 1
+        else:
+            j -= 1
+    return "".join(reversed(out))
+
+
+# ---------------------------------------------------------------------------
+# EDIT – Edit-Distanz (Levenshtein)
+# ---------------------------------------------------------------------------
+def edit_distance(s: str, t: str) -> int:
+    # Nur zwei Zeilen der Tabelle im Speicher.
+    prev = list(range(len(t) + 1))
+    for i in range(1, len(s) + 1):
+        cur = [i] + [0] * len(t)
+        for j in range(1, len(t) + 1):
+            cost = 0 if s[i - 1] == t[j - 1] else 1
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+        prev = cur
+    return prev[-1]
+
+
+# ---------------------------------------------------------------------------
 # REVP – Restriktionsstellen (Palindrome)
 # ---------------------------------------------------------------------------
 def reverse_palindromes(dna: str, lo: int = 4, hi: int = 12) -> List[Tuple[int, int]]:
