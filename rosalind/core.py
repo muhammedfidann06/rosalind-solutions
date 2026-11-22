@@ -522,6 +522,89 @@ def edit_distance(s: str, t: str) -> int:
 
 
 # ---------------------------------------------------------------------------
+# TREE – Wie viele Kanten fehlen bis zum Baum?
+# ---------------------------------------------------------------------------
+def edges_to_complete_tree(n: int, edges: List[Tuple[int, int]]) -> int:
+    # Ein Baum mit n Knoten hat genau n - 1 Kanten (ohne Kreise vorausgesetzt).
+    return n - 1 - len(edges)
+
+
+# ---------------------------------------------------------------------------
+# CORR – Lesefehler korrigieren
+# ---------------------------------------------------------------------------
+def correct_reads(reads: List[str]) -> List[Tuple[str, str]]:
+    # Ein Read ist "richtig", wenn er (oder sein Komplement) mindestens zweimal vorkommt.
+    # Falsche Reads werden zu dem richtigen Read mit Hamming-Distanz 1 korrigiert.
+    counts = Counter(reads)
+    for r in reads:
+        rc = reverse_complement(r)
+        if rc != r:
+            counts[r] += reads.count(rc)
+    correct = {r for r, c in counts.items() if c >= 2}
+    correct |= {reverse_complement(r) for r in correct}
+    fixes: List[Tuple[str, str]] = []
+    for r in reads:
+        if r in correct:
+            continue
+        for c in sorted(correct):
+            if len(c) == len(r) and hamming(r, c) == 1:
+                fixes.append((r, c))
+                break
+    return fixes
+
+
+# ---------------------------------------------------------------------------
+# LONG – Kürzester gemeinsamer Superstring (gierig, Überlappung > halbe Länge)
+# ---------------------------------------------------------------------------
+def shortest_superstring(reads: List[str]) -> str:
+    # Rosalind garantiert: Es gibt eine eindeutige Kette mit Überlappungen > halbe Read-Länge.
+    reads = list(reads)
+
+    def overlap(a: str, b: str) -> int:
+        # Längstes Ende von a, das Anfang von b ist (mehr als die Hälfte)
+        for k in range(min(len(a), len(b)), len(b) // 2, -1):
+            if a.endswith(b[:k]):
+                return k
+        return 0
+
+    result = reads.pop(0)
+    while reads:
+        for i, r in enumerate(reads):
+            k = overlap(result, r)
+            if k:               # r passt hinten an
+                result += r[k:]
+                reads.pop(i)
+                break
+            k = overlap(r, result)
+            if k:               # r passt vorne an
+                result = r + result[k:]
+                reads.pop(i)
+                break
+        else:
+            raise ValueError("Reads lassen sich nicht verketten.")
+    return result
+
+
+# ---------------------------------------------------------------------------
+# LEXV – Wörter bis Länge n, Präfix kommt vor längeren Wörtern
+# ---------------------------------------------------------------------------
+def lexicographic_variable_length(alphabet: List[str], n: int) -> List[str]:
+    # Tiefensuche: zuerst das Wort selbst, dann alle Verlängerungen.
+    out: List[str] = []
+
+    def dfs(prefix: str) -> None:
+        if len(prefix) == n:
+            return
+        for ch in alphabet:
+            word = prefix + ch
+            out.append(word)
+            dfs(word)
+
+    dfs("")
+    return out
+
+
+# ---------------------------------------------------------------------------
 # REVP – Restriktionsstellen (Palindrome)
 # ---------------------------------------------------------------------------
 def reverse_palindromes(dna: str, lo: int = 4, hi: int = 12) -> List[Tuple[int, int]]:
