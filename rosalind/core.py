@@ -360,6 +360,53 @@ def p_distance_matrix(seqs: List[str]) -> List[List[float]]:
 
 
 # ---------------------------------------------------------------------------
+# INOD – Innere Knoten eines ungewurzelten Binärbaums
+# ---------------------------------------------------------------------------
+def internal_nodes(leaves: int) -> int:
+    # Jeder innere Knoten hat Grad 3. Aus "Kanten = Knoten - 1" folgt: innere = Blätter - 2.
+    if leaves < 3:
+        raise ValueError("Ein ungewurzelter Binärbaum braucht mindestens 3 Blätter.")
+    return leaves - 2
+
+
+# ---------------------------------------------------------------------------
+# SIGN – Vorzeichenbehaftete Permutationen
+# ---------------------------------------------------------------------------
+def signed_permutations(n: int) -> List[Tuple[int, ...]]:
+    # Jede Permutation, und jede Zahl darf + oder - sein -> n! * 2^n Möglichkeiten.
+    from itertools import permutations
+    out: List[Tuple[int, ...]] = []
+    for perm in permutations(range(1, n + 1)):
+        for signs in product((1, -1), repeat=n):
+            out.append(tuple(s * p for s, p in zip(signs, perm)))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# LIA – Mendels zweites Gesetz (unabhängige Allele)
+# ---------------------------------------------------------------------------
+def independent_alleles(k: int, n: int) -> float:
+    # Mit einem AaBb-Partner ist jedes Kind mit Wahrscheinlichkeit 1/4 AaBb – egal welche Eltern.
+    # In Generation k gibt es 2^k Organismen. Gesucht: P(mindestens n davon sind AaBb).
+    from math import comb
+    total = 2 ** k
+    p = 0.25
+    return 1 - sum(comb(total, i) * p ** i * (1 - p) ** (total - i) for i in range(n))
+
+
+# ---------------------------------------------------------------------------
+# PROB – Wahrscheinlichkeit einer Sequenz bei gegebenem GC-Gehalt (log10)
+# ---------------------------------------------------------------------------
+def random_string_log_probability(dna: str, gc_contents: List[float]) -> List[float]:
+    # Bei GC-Gehalt x: P(G) = P(C) = x/2, P(A) = P(T) = (1-x)/2.
+    # Wir addieren Logarithmen statt Wahrscheinlichkeiten zu multiplizieren (kein Unterlauf).
+    from math import log10
+    gc = sum(1 for ch in dna.upper() if ch in "GC")
+    at = len(dna) - gc
+    return [gc * log10(x / 2) + at * log10((1 - x) / 2) for x in gc_contents]
+
+
+# ---------------------------------------------------------------------------
 # REVP – Restriktionsstellen (Palindrome)
 # ---------------------------------------------------------------------------
 def reverse_palindromes(dna: str, lo: int = 4, hi: int = 12) -> List[Tuple[int, int]]:
