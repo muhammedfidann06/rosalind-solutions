@@ -605,6 +605,55 @@ def lexicographic_variable_length(alphabet: List[str], n: int) -> List[str]:
 
 
 # ---------------------------------------------------------------------------
+# SEXL – Geschlechtsgebundene Vererbung
+# ---------------------------------------------------------------------------
+def sex_linked_carriers(male_recessive: List[float]) -> List[float]:
+    # Männer haben nur ein X: Anteil kranker Männer = Allelfrequenz q.
+    # Trägerinnen sind heterozygot: 2 * q * (1 - q) (Hardy-Weinberg).
+    return [2 * q * (1 - q) for q in male_recessive]
+
+
+# ---------------------------------------------------------------------------
+# AFRQ – Allelfrequenz aus dem Anteil homozygot rezessiver Personen
+# ---------------------------------------------------------------------------
+def carrier_probability(homozygous_recessive: List[float]) -> List[float]:
+    # Hardy-Weinberg: Anteil aa = q², also q = Wurzel daraus.
+    # Mindestens ein rezessives Allel = 1 - Anteil AA = 1 - (1 - q)².
+    from math import sqrt
+    return [1 - (1 - sqrt(b)) ** 2 for b in homozygous_recessive]
+
+
+# ---------------------------------------------------------------------------
+# EVAL – Erwartete Anzahl eines Motivs in einer zufälligen Sequenz
+# ---------------------------------------------------------------------------
+def expected_motif_count(n: int, motif: str, gc_contents: List[float]) -> List[float]:
+    # Erwartungswert = Anzahl möglicher Startpositionen * Wahrscheinlichkeit des Motivs.
+    from math import prod
+    positions = n - len(motif) + 1
+    out = []
+    for x in gc_contents:
+        p = prod(x / 2 if ch in "GC" else (1 - x) / 2 for ch in motif.upper())
+        out.append(positions * p)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# KMP – Fehlerfunktion (Präfix-Funktion) des Knuth-Morris-Pratt-Algorithmus
+# ---------------------------------------------------------------------------
+def failure_array(s: str) -> List[int]:
+    # p[i] = Länge des längsten echten Präfixes von s[:i+1], das auch Suffix davon ist.
+    p = [0] * len(s)
+    k = 0
+    for i in range(1, len(s)):
+        while k > 0 and s[i] != s[k]:
+            k = p[k - 1]  # zurückspringen statt von vorne anfangen
+        if s[i] == s[k]:
+            k += 1
+        p[i] = k
+    return p
+
+
+# ---------------------------------------------------------------------------
 # REVP – Restriktionsstellen (Palindrome)
 # ---------------------------------------------------------------------------
 def reverse_palindromes(dna: str, lo: int = 4, hi: int = 12) -> List[Tuple[int, int]]:
