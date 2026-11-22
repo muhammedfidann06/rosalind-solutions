@@ -654,6 +654,59 @@ def failure_array(s: str) -> List[int]:
 
 
 # ---------------------------------------------------------------------------
+# SPEC – Protein aus einem Präfix-Spektrum ableiten
+# ---------------------------------------------------------------------------
+def protein_from_spectrum(prefix_masses: List[float]) -> str:
+    # Der Unterschied zweier aufeinanderfolgender Massen ist die Masse einer Aminosäure.
+    # Wir nehmen die Aminosäure mit der nächstliegenden Masse (Messungen sind gerundet).
+    protein = []
+    for a, b in zip(prefix_masses, prefix_masses[1:]):
+        diff = b - a
+        protein.append(min(MONO_MASS, key=lambda aa: abs(MONO_MASS[aa] - diff)))
+    return "".join(protein)
+
+
+# ---------------------------------------------------------------------------
+# SCSP – Kürzeste gemeinsame Oberfolge (Supersequence)
+# ---------------------------------------------------------------------------
+def shortest_common_supersequence(s: str, t: str) -> str:
+    # Länge = |s| + |t| - |LCS|. Wir laufen durch beide Strings und fügen die LCS nur einmal ein.
+    lcs = longest_common_subsequence(s, t)
+    out: List[str] = []
+    i = j = 0
+    for ch in lcs:
+        while s[i] != ch:
+            out.append(s[i])
+            i += 1
+        while t[j] != ch:
+            out.append(t[j])
+            j += 1
+        out.append(ch)
+        i += 1
+        j += 1
+    return "".join(out) + s[i:] + t[j:]
+
+
+# ---------------------------------------------------------------------------
+# DBRU – De-Bruijn-Graph aus Reads und ihren reversen Komplementen
+# ---------------------------------------------------------------------------
+def de_bruijn_edges(reads: List[str]) -> List[Tuple[str, str]]:
+    # Jeder (k+1)-mer r wird zur Kante (r ohne letztes Zeichen) -> (r ohne erstes Zeichen).
+    kmers = set(reads) | {reverse_complement(r) for r in reads}
+    return sorted((r[:-1], r[1:]) for r in kmers)
+
+
+# ---------------------------------------------------------------------------
+# CONV – Spektrale Faltung (welche Massendifferenz kommt am häufigsten vor?)
+# ---------------------------------------------------------------------------
+def spectral_convolution(s1: List[float], s2: List[float]) -> Tuple[int, float]:
+    # Alle Differenzen bilden, auf 5 Nachkommastellen runden (Messgenauigkeit), dann zählen.
+    diffs = Counter(round(a - b, 5) for a in s1 for b in s2)
+    value, count = max(diffs.items(), key=lambda kv: kv[1])
+    return count, abs(value)
+
+
+# ---------------------------------------------------------------------------
 # REVP – Restriktionsstellen (Palindrome)
 # ---------------------------------------------------------------------------
 def reverse_palindromes(dna: str, lo: int = 4, hi: int = 12) -> List[Tuple[int, int]]:
